@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "testing_lab"
+version = "0.0.1"
+authors = [
+  { name="Michae l Fedell", email="mfedell@northwestern.edu" },
+]
+description = "A small example package"
+requires-python = ">=3.9"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
