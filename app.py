@@ -2,12 +2,13 @@ import os
 import logging
 from pathlib import Path
 import streamlit as st
-import joblib
+import pickle
 import boto3
 import pandas as pd
 import numpy as np
 import yaml
-from io import BytesIO
+import sklearn 
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -32,9 +33,12 @@ config = load_config('config.yaml')
 BUCKET_NAME = config['aws']['bucket_name']
 MODEL_FILE_KEYS = config['aws']['model_file_keys']
 DATA_FILE_KEY = config['aws']['data_file_key']
-AWS_ACCESS_KEY_ID = config['aws']['aws_access_key_id']
-AWS_SECRET_ACCESS_KEY = config['aws']['aws_secret_access_key']
+AWS_ACCESS_KEY_ID = os.getenv('aws_access_key_id')
+AWS_SECRET_ACCESS_KEY = os.getenv('aws_secret_access_key')
 AWS_REGION_NAME = config['aws']['region_name']
+MODEL_STORE='models/'
+
+os.makedirs(MODEL_STORE, exist_ok=True)
 
 # Initialize S3 client with credentials
 try:
@@ -53,11 +57,10 @@ except Exception as e:
 # Function to download a file from S3 and return a BytesIO object
 def download_file_from_s3(bucket, key):
     try:
-        data = BytesIO()
-        s3.download_fileobj(bucket, key, data)
-        data.seek(0)
+        model_path = os.path.join(MODEL_STORE, os.path.basename(key))
+        s3.download_file(bucket, key, model_path)
         logger.info(f"File {key} downloaded from S3 successfully")
-        return data
+        return model_path
     except Exception as e:
         logger.error(f"Error downloading file from S3: {e}")
         st.error("Error downloading file from S3. Please check the logs.")
@@ -65,9 +68,9 @@ def download_file_from_s3(bucket, key):
 
 # Load the model from S3
 def load_model_from_s3(bucket, key):
-    data = download_file_from_s3(bucket, key)
+    path = download_file_from_s3(bucket, key)
     try:
-        model = joblib.load(data)
+        model = pickle.load(open(path, 'rb'))
         logger.info(f"Model {key} loaded successfully")
         return model
     except Exception as e:

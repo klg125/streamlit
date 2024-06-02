@@ -1,12 +1,10 @@
 
 aws:
   upload: true
-  bucket_name: klt0112-bucket
+  bucket_name: klt1102-bucket
   prefix: experiments/{run_config.name}
   model_file_keys:
     model1: v1.pkl
     model2: v2.pkl
   data_file_key: clouds.csv
-  aws_access_key_id: AKIAW3MD6OUX7YUF7QP5
-  aws_secret_access_key: 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
   region_name: 'us-east-1'
